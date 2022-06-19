@@ -16,6 +16,7 @@ enum SPOT_STATE {
 map<int,int> boardstatus;
 const int SIZE = 15;
 const int INFINITE = 1000000;
+const int NEGINF = -1000000;
 
 
 class State{
@@ -37,9 +38,11 @@ class State{
                 this->board[x][y] = board[x][y];
             }
         }
-        cout<<"Stated"<<endl;
+        //cout<<"Stated"<<endl;
         bvalue = 0; 
         setvalue();
+        cout<<"Completed"<<endl;
+        cout<<bvalue<<endl;
         
     }
 
@@ -83,14 +86,15 @@ void read_board(std::ifstream& fin) {
 
 int seqvalue(int cnt,int head,int tail,int disk){
    if(disk == 0){return 0;}
-   if(head == tail && disk != 0){return 0;}
+   if(head == tail && head != 0 && tail !=0){return 0;}
    if(cnt == 5){return INFINITE;}
-   if(head==tail){
+   if(head==tail && head==0 && tail == 0){
      if(cnt == 4){return (player == disk)? 100:-100;}
+     else if(cnt == 3){return (player == disk)? 10:-10;}
      else if(disk == player){return cnt*2;}
      else{return -(cnt*2);}
    }
-   else{
+   else if(cnt>=2){
      if(disk == player){return cnt;}
      else{return -cnt;}
    }      
@@ -112,14 +116,14 @@ void State:: setvalue(){
             else if(board[i][j] != disk){
                 tail = board[i][j];
                 hor[i] += seqvalue(cnt,head,tail,disk);
-                head = disk;
+                head = board[i][j-1];
                 disk = board[i][j];
                 cnt = 1;
             }
         }
         tail = -1;
         hor[i] += seqvalue(cnt,head,tail,disk);
-        cout<<hor[i]<<endl;
+        cout<<hor[i]<<"h"<<i<<endl;
         bvalue+=hor[i];
     }
     for(int j=0;j<SIZE;j++){
@@ -134,115 +138,123 @@ void State:: setvalue(){
             else if(board[i][j] != disk){
                 tail = board[i][j];
                 ver[j] += seqvalue(cnt,head,tail,disk);
-                head = disk;
+                head = board[i-1][j];
                 disk = board[i][j];
                 cnt = 1;
             }
         }
         tail = -1;
         ver[j] += seqvalue(cnt,head,tail,disk);
-        cout<<ver[j]<<endl;
+        cout<<ver[j]<<"v"<<j<<endl;
         bvalue += ver[j];
     }
     for(int a=0;a<SIZE-1;a++){
-        int b=0;
-        int c=a;
-        ldig[a-b] = 0;
+        int x=0;
+        int y = a;
+        ldig[a] = 0;
         head = -1,cnt = 1;
-        disk = board[a][b];
-        while(c<SIZE && b<SIZE && c>=0 && b>=0){
-             if(board[c][b] == disk){
+        disk = board[x][a];
+        while(x<SIZE && y<SIZE && x>=0 && y>=0){
+             if(board[x][y] == disk){
                 cnt++;
             }
-            else if(board[c][b] != disk){
-                tail = board[c][b];
-                ldig[a-b] += seqvalue(cnt,head,tail,disk);
-                head = disk;
-                disk = board[c][b];
+            else if(board[x][y] != disk){
+                tail = board[x][y];
+                ldig[a] += seqvalue(cnt,head,tail,disk);
+                head = board[x-1][y-1];
+                disk = board[x][y];
                 cnt = 1;
         }
-        c++;
-        b++;
+        x++;
+        y++;
         }
         tail = -1;
-        ldig[a-b] += seqvalue(cnt,head,tail,disk);
-        //cout<<ldig[a-b]<<endl;
-        bvalue+=ldig[a-b];
+        ldig[a] += seqvalue(cnt,head,tail,disk);
+        cout<<ldig[a]<<"l"<<a<<endl;
+        bvalue+=ldig[a];
     }
-    for(int b=0;b<SIZE-1;b++){
-        int a=0;
-        int c=b;
-        ldig[14-(a-b)] = 0;
+    for(int b=1;b<SIZE-1;b++){
+        int y=0;
+        int x = b;
+        ldig[14+b] = 0;
         head = -1,cnt = 1;
-        disk = board[a][b];
-        while(a<SIZE && c<SIZE && a>=0 && b>=0){
-             if(board[a][c] == disk){
+        disk = board[b][y];
+        
+        while(x<SIZE && y<SIZE && x>=0 && y>=0){
+            
+             if(board[x][y] == disk){
                 cnt++;
             }
-            else if(board[a][c] != disk){
-                tail = board[a][c];
-                ldig[14-(a-b)] += seqvalue(cnt,head,tail,disk);
-                head = disk;
-                disk = board[a][c];
+            else if(board[x][y] != disk){
+                tail = board[x][y];
+                ldig[14+b] += seqvalue(cnt,head,tail,disk);
+                head = board[x-1][y-1];
+                disk = board[x][y];
                 cnt = 1;
-            a++;
-            c++;
+            }
+            x++;
+            y++;
+            
+        
         }
         tail = -1;
-        ldig[14-(a-b)] += seqvalue(cnt,head,tail,disk);
-        //cout<<ldig[14-(a-b)]<<endl;
-        bvalue+=ldig[14-(a-b)];
+        ldig[14+b] += seqvalue(cnt,head,tail,disk);
+        cout<<ldig[14+b]<<"l"<<14+b<<endl;
+        bvalue+=ldig[14+b];
         }
+    
+    for(int a=1;a<SIZE;a++){
+        int x=0;
+        int y=a;
+        head = -1,cnt = 1;
+        rdig[a] = 0;
+        disk = board[x][a];
+        while(x<SIZE && y<SIZE && x>=0 && y>=0){
+             if(board[x][y] == disk){
+                cnt++;
+            }
+            else if(board[x][y] != disk){
+                tail = board[x][y];
+                rdig[a] += seqvalue(cnt,head,tail,disk);
+                head = board[x-1][y+1];
+                disk = board[x][y];
+                cnt = 1;
+            }
+            x++;
+            y--;
+        
+        }
+        tail = -1;
+        rdig[a] += seqvalue(cnt,head,tail,disk);
+        cout<<rdig[a]<<"r"<<a<<endl;
+        bvalue+=rdig[a];
     }
-    for(int a=0;a<SIZE-1;a++){
-        int b=0;
-        int c=a;
+    for(int b=1;b<SIZE;b++){
+        int y=14;
+        int x=b;
         head = -1,cnt = 1;
-        rdig[a+b] = 0;
-        disk = board[a][b];
-        while(c<SIZE && b<SIZE && c>=0 && b>=0){
-             if(board[c][b] == disk){
+        rdig[14+b] = 0;
+        disk = board[x][y];
+        while(x<SIZE && y<SIZE && x>=0 && y>=0){
+            if(board[x][y] == disk){
                 cnt++;
             }
-            else if(board[c][b] != disk){
-                tail = board[c][b];
-                rdig[a+b] += seqvalue(cnt,head,tail,disk);
-                head = disk;
-                disk = board[c][b];
+            else if(board[x][y] != disk){
+                tail = board[x][y];
+                rdig[14+b] += seqvalue(cnt,head,tail,disk);
+                head = board[x-1][y+1];
+                disk = board[x][y];
                 cnt = 1;
-            c--;
-            b++;
-        }
-        tail = -1;
-        rdig[a+b] += seqvalue(cnt,head,tail,disk);
-        //cout<<rdig[a+b]<<endl;
-        bvalue+=rdig[a+b];
-        }
-    }
-    for(int b=0;b<SIZE-1;b++){
-        int a=0;
-        int c=b;
-        head = -1,cnt = 1;
-        rdig[a+b] = 0;
-        disk = board[a][b];
-        while(a<SIZE && c<SIZE && a>=0 && c>=0){
-            if(board[a][c] == disk){
-                cnt++;
             }
-            else if(board[a][c] != disk){
-                tail = board[a][c];
-                rdig[a+b] += seqvalue(cnt,head,tail,disk);
-                head = disk;
-                disk = board[a][c];
-                cnt = 1;
-            a--;
-            c++;
+            x++;
+            y--;
+        
         }
         tail = -1;
-        rdig[a+b] += seqvalue(cnt,head,tail,disk);
-        //cout<<rdig[a+b]<<endl;
-        bvalue+=rdig[a+b];
-        }
+        rdig[14+b] += seqvalue(cnt,head,tail,disk);
+        cout<<rdig[14+b]<<"r"<<14+b<<endl;
+        bvalue+=rdig[14+b];
+        
     }
 }
 
@@ -260,7 +272,7 @@ void State:: changevalue(int x,int y){
             else if(board[x][k] != disk){
                 tail = board[x][k];
                 value += seqvalue(cnt,head,tail,disk);
-                head = disk;
+                head = board[x][k-1];
                 disk = board[x][k];
                 cnt = 1;
             }
@@ -272,14 +284,14 @@ void State:: changevalue(int x,int y){
 
 
     for(int k=1;k<SIZE;k++){
-            
+            value = 0;
             if(board[k][y] == disk){
                 cnt++;
             }
             else if(board[k][y] != disk){
                 tail = board[k][y];
                 value += seqvalue(cnt,head,tail,disk);
-                head = disk;
+                head = board[k-1][y];
                 disk = board[k][y];
                 cnt = 1;
             }
@@ -293,55 +305,7 @@ void State:: changevalue(int x,int y){
     if(i<=0){
         int a = 0;
         int value = 0;
-        int b = -(x-y);
-        while(a<SIZE && b<SIZE){
-             if(board[a][b] == disk){
-                cnt++;
-            }
-            else if(board[a][b] != disk){
-                tail = board[a][b];
-                value += seqvalue(cnt,head,tail,disk);
-                head = disk;
-                disk = board[a][b];
-                cnt = 1;
-            a++;
-            b++;
-        }
-        }
-        tail = -1;
-        value += seqvalue(cnt,head,tail,disk);
-        bvalue = bvalue-ldig[14-i]+value;
-        ldig[14-i] = value;
-    }
-    else{
-        int a = x-y;
-        int b = 0;
-        while(a<SIZE && b<SIZE){
-             if(board[a][b] == disk){
-                cnt++;
-            }
-            else if(board[a][b] != disk){
-                tail = board[a][b];
-                value += seqvalue(cnt,head,tail,disk);
-                head = disk;
-                disk = board[a][b];
-                cnt = 1;
-            a++;
-            b++;
-        }
-        }
-        tail = -1;
-        value += seqvalue(cnt,head,tail,disk);
-        bvalue = bvalue-ldig[i]+value;
-        ldig[i] = value;
-    }
-    
-
-
-    int j = x+y;
-    if(j<=SIZE-1){
-        int a = 0;
-        int b = x+y;
+        int b = -i;
         while(a<SIZE && b<SIZE && a>=0 && b>=0){
              if(board[a][b] == disk){
                 cnt++;
@@ -349,12 +313,65 @@ void State:: changevalue(int x,int y){
             else if(board[a][b] != disk){
                 tail = board[a][b];
                 value += seqvalue(cnt,head,tail,disk);
-                head = disk;
+                head = board[a-1][b-1];
                 disk = board[a][b];
                 cnt = 1;
-            a--;
+            }
+            a++;
             b++;
+        
         }
+        tail = -1;
+        value += seqvalue(cnt,head,tail,disk);
+        bvalue = bvalue-ldig[b]+value;
+        ldig[b] = value;
+    }
+    else{
+        int a = x-y;
+        int b = 0;
+        value = 0;
+        while(a<SIZE && b<SIZE && a>=0 && b>=0){
+             if(board[a][b] == disk){
+                cnt++;
+            }
+            else if(board[a][b] != disk){
+                tail = board[a][b];
+                value += seqvalue(cnt,head,tail,disk);
+                head = board[a-1][b-1];
+                disk = board[a][b];
+                cnt = 1;
+            }
+            a++;
+            b++;
+        
+        }
+        tail = -1;
+        value += seqvalue(cnt,head,tail,disk);
+        bvalue = bvalue-ldig[14+a]+value;
+        ldig[14+a] = value;
+    }
+    
+
+
+    int j = x+y;
+    if(j<=SIZE){
+        int a = 0;
+        int b = x+y;
+        value = 0;
+        while(a<SIZE && b<SIZE && a>=0 && b>=0){
+             if(board[a][b] == disk){
+                cnt++;
+            }
+            else if(board[a][b] != disk){
+                tail = board[a][b];
+                value += seqvalue(cnt,head,tail,disk);
+                head = board[a-1][b+1];
+                disk = board[a][b];
+                cnt = 1;
+            }
+            a++;
+            b--;
+        
         }
         tail = -1;
         value += seqvalue(cnt,head,tail,disk);
@@ -362,21 +379,23 @@ void State:: changevalue(int x,int y){
         rdig[j] = value;
     }
     else{
-        int a = x-y;
-        int b = 0;
-        while(a<SIZE && b<SIZE){
+        int a = x+y-14;
+        int b = SIZE-1;
+        value = 0;
+        while(a<SIZE && b<SIZE && a>=0 && b>=0){
              if(board[a][b] == disk){
                 cnt++;
             }
             else if(board[a][b] != disk){
                 tail = board[a][b];
                 value += seqvalue(cnt,head,tail,disk);
-                head = disk;
+                head = board[a-1][b+1];
                 disk = board[a][b];
                 cnt = 1;
+            }
             a++;
-            b++;
-        }
+            b--;
+        
         }
         tail = -1;
         value += seqvalue(cnt,head,tail,disk);
@@ -393,7 +412,7 @@ int minimax(State s,int depth,bool ourturn){
         for(int x=0;x<SIZE;x++){
         for(int y=0;y<SIZE;y++){
             if(s.board[x][y] == EMPTY){
-                int bvalue = -1;
+                int bvalue = NEGINF;
                 State n(s);
                 n.update(player,x,y);
                 bvalue = max(bvalue,minimax(n,depth-1,false));
@@ -423,30 +442,29 @@ int minimax(State s,int depth,bool ourturn){
 void write_valid_spot(std::ofstream& fout,State original) {
     srand(time(NULL));
     int x, y;
-    int bvalue = -1;
-    if(board[7][7] == EMPTY){
-        x = 7,y = 7;
-        fout<<x<<" "<<y<<endl;
-        fout.flush();
-        return;
-    }
+    int bvalue = NEGINF;
+    
     while(true){
-    for(x=0;x<SIZE;x++){
-    for(y=0;y<SIZE;y++){
+        for(int x=0;x<SIZE;x++){
+            for(int y=0;y<SIZE;y++){
+        
         if(original.board[x][y] == EMPTY){
              State s(original);
              s.update(player,x,y);
              if(bvalue<minimax(s,3,false)){
                 
                 bvalue = s.bvalue;
+                cout<<bvalue<<endl;
                 fout<<x<<" "<<y<<endl;
                 fout.flush();
              }
         }
+            }
+        }
     }
     }
-    }
-}
+    
+
 
 
 
@@ -457,7 +475,7 @@ int main(int, char** argv) {
     read_board(fin);
     cout<<"Readed"<<endl;
     State original(board);
-    cout<<"Stated"<<endl;
+    
     write_valid_spot(fout,original);
     fin.close();
     fout.close();
