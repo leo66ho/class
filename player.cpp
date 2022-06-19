@@ -16,7 +16,6 @@ enum SPOT_STATE {
 map<int,int> boardstatus;
 const int SIZE = 15;
 const int INFINITE = 1000000;
-const int NEGINF = -1000000;
 
 
 class State{
@@ -38,10 +37,9 @@ class State{
                 this->board[x][y] = board[x][y];
             }
         }
-        //cout<<"Stated"<<endl;
+        cout<<"Stated"<<endl;
         bvalue = 0; 
         setvalue();
-        
         cout<<"Completed"<<endl;
         cout<<bvalue<<endl;
         
@@ -87,11 +85,10 @@ void read_board(std::ifstream& fin) {
 
 int seqvalue(int cnt,int head,int tail,int disk){
    if(disk == 0){return 0;}
-   if(head == tail && head != 0 && tail !=0){return 0;}
+   if(head == tail && disk != 0){return 0;}
    if(cnt == 5){return INFINITE;}
-   if(head==tail && head==0 && tail == 0){
+   if(head==tail){
      if(cnt == 4){return (player == disk)? 100:-100;}
-     else if(cnt == 3){return (player == disk)? 10:-10;}
      else if(disk == player){return cnt*2;}
      else{return -(cnt*2);}
    }
@@ -149,7 +146,7 @@ void State:: setvalue(){
         cout<<ver[j]<<"v"<<j<<endl;
         bvalue += ver[j];
     }
-    for(int a=0;a<SIZE;a++){
+    for(int a=0;a<SIZE-1;a++){
         int x=0;
         int y = a;
         ldig[a] = 0;
@@ -174,7 +171,7 @@ void State:: setvalue(){
         cout<<ldig[a]<<"l"<<a<<endl;
         bvalue+=ldig[a];
     }
-    for(int b=1;b<SIZE;b++){
+    for(int b=1;b<SIZE-1;b++){
         int y=0;
         int x = b;
         ldig[14+b] = 0;
@@ -204,7 +201,7 @@ void State:: setvalue(){
         bvalue+=ldig[14+b];
         }
     
-    for(int a=0;a<SIZE;a++){
+    for(int a=1;a<SIZE;a++){
         int x=0;
         int y=a;
         head = -1,cnt = 1;
@@ -230,7 +227,7 @@ void State:: setvalue(){
         cout<<rdig[a]<<"r"<<a<<endl;
         bvalue+=rdig[a];
     }
-    for(int b=1;b<SIZE-1;b++){
+    for(int b=1;b<SIZE;b++){
         int y=14;
         int x=b;
         head = -1,cnt = 1;
@@ -282,11 +279,10 @@ void State:: changevalue(int x,int y){
     value += seqvalue(cnt,head,tail,disk);
     bvalue = bvalue-hor[x]+value;
     hor[x] = value;
-    //cout<<hor[x]<<"h"<<x<<endl;
 
 
     for(int k=1;k<SIZE;k++){
-            value = 0;
+            
             if(board[k][y] == disk){
                 cnt++;
             }
@@ -302,13 +298,12 @@ void State:: changevalue(int x,int y){
     value += seqvalue(cnt,head,tail,disk);
     bvalue = bvalue-ver[y]+value;
     ver[y] = value;
-    //cout<<ver[y]<<"v"<<y<<endl;
 
-    
-    if(x<=y){
+    int i = x-y;
+    if(i<=0){
         int a = 0;
         int value = 0;
-        int b = y-x;
+        int b = -i;
         while(a<SIZE && b<SIZE && a>=0 && b>=0){
              if(board[a][b] == disk){
                 cnt++;
@@ -326,14 +321,12 @@ void State:: changevalue(int x,int y){
         }
         tail = -1;
         value += seqvalue(cnt,head,tail,disk);
-        bvalue = bvalue-ldig[y-x]+value;
-        ldig[y-x] = value;
-       // cout<<ldig[y-x]<<"l"<<b<<endl;
+        bvalue = bvalue-ldig[b]+value;
+        ldig[b] = value;
     }
     else{
         int a = x-y;
         int b = 0;
-        value = 0;
         while(a<SIZE && b<SIZE && a>=0 && b>=0){
              if(board[a][b] == disk){
                 cnt++;
@@ -351,18 +344,16 @@ void State:: changevalue(int x,int y){
         }
         tail = -1;
         value += seqvalue(cnt,head,tail,disk);
-        bvalue = bvalue-ldig[14+(x-y)]+value;
-        ldig[14+(x-y)] = value;
-      //  cout<<ldig[14+(x-y)]<<"l"<<14+a<<endl;
+        bvalue = bvalue-ldig[14+a]+value;
+        ldig[14+a] = value;
     }
     
 
 
     int j = x+y;
-    if(j<SIZE){
+    if(j<=SIZE){
         int a = 0;
         int b = x+y;
-        value = 0;
         while(a<SIZE && b<SIZE && a>=0 && b>=0){
              if(board[a][b] == disk){
                 cnt++;
@@ -382,12 +373,10 @@ void State:: changevalue(int x,int y){
         value += seqvalue(cnt,head,tail,disk);
         bvalue = bvalue-rdig[j]+value;
         rdig[j] = value;
-       // cout<<rdig[j]<<"r"<<j<<endl;
     }
     else{
         int a = x+y-14;
-        int b = 14;
-        value = 0;
+        int b = SIZE-1;
         while(a<SIZE && b<SIZE && a>=0 && b>=0){
              if(board[a][b] == disk){
                 cnt++;
@@ -407,7 +396,6 @@ void State:: changevalue(int x,int y){
         value += seqvalue(cnt,head,tail,disk);
         bvalue = bvalue-rdig[j]+value;
         rdig[j] = value;
-       // cout<<rdig[j]<<"r"<<j<<endl;
     }
 }
 
@@ -419,7 +407,7 @@ int minimax(State s,int depth,bool ourturn){
         for(int x=0;x<SIZE;x++){
         for(int y=0;y<SIZE;y++){
             if(s.board[x][y] == EMPTY){
-                int bvalue = NEGINF;
+                int bvalue = -1;
                 State n(s);
                 n.update(player,x,y);
                 bvalue = max(bvalue,minimax(n,depth-1,false));
@@ -449,26 +437,23 @@ int minimax(State s,int depth,bool ourturn){
 void write_valid_spot(std::ofstream& fout,State original) {
     srand(time(NULL));
     int x, y;
-    int bvalue = NEGINF;
+    int bvalue = -1;
     
     while(true){
-        x = (rand() % SIZE);
-        y = (rand() % SIZE);
-        
+        int x = (rand() % SIZE);
+        int y = (rand() % SIZE);
         if(original.board[x][y] == EMPTY){
              State s(original);
              s.update(player,x,y);
              if(bvalue<minimax(s,3,false)){
+                
                 bvalue = s.bvalue;
-                cout<<bvalue<<endl;
                 fout<<x<<" "<<y<<endl;
                 fout.flush();
-            }
+             }
         }
-     }
-        
-} 
-    
+    }
+    }
     
 
 
@@ -481,7 +466,7 @@ int main(int, char** argv) {
     read_board(fin);
     cout<<"Readed"<<endl;
     State original(board);
-    
+    //cout<<"Stated"<<endl;
     write_valid_spot(fout,original);
     fin.close();
     fout.close();
