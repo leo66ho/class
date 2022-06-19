@@ -86,15 +86,15 @@ void read_board(std::ifstream& fin) {
 int seqvalue(int cnt,int head,int tail,int disk){
    if(disk == 0){return 0;}
    if(head == tail &&  head != 0 && tail != 0){return 0;}
-   if(cnt == 5){return INFINITE;}
+   if(cnt == 5){return (player == disk)? INFINITE:-100000;}
    if(head==tail && head==0 && tail == 0 && cnt>=2){
      if(cnt == 4){return (player == disk)? 100:-100;}
-     else if(disk == player){return cnt*2;}
-     else{return -(cnt*2);}
+     if(cnt == 3){return (player == disk)? 15:-15;}
+     if(cnt == 2){return (player == disk)? 5:-5;}
    }
-   else if(cnt>=2){
-     if(disk == player){return cnt;}
-     else{return -cnt;}
+   else if(cnt>=3){
+     if(cnt == 4){return (player == disk)? 20:-20;}
+     else if(cnt == 3){return (player == disk)? 5:-5;}
    }
    return 0;    
 }
@@ -416,7 +416,7 @@ void State:: changevalue(int x,int y){
 }
 
 int minimax(State s,int depth,bool ourturn){
-    if(depth == 0 || s.bvalue == INFINITE || s.bvalue == -100000){
+    if(depth == 0){
         return s.bvalue;
     }
     else if(ourturn == true){
@@ -445,8 +445,6 @@ int minimax(State s,int depth,bool ourturn){
             }
         }
     }
-    
-    
 }
 
 
@@ -454,20 +452,26 @@ void write_valid_spot(std::ofstream& fout,State original) {
     srand(time(NULL));
     int x, y;
     int bvalue = -100000;
-    
+    if(board[7][7] == EMPTY){
+        fout<<7<<" "<<7<<endl;
+        fout.flush();
+        return;
+    }
     while(true){
-        int x = (rand() % SIZE);
-        int y = (rand() % SIZE);
+        for(x=0;x<SIZE;x++){
+        for(y=0;y<SIZE;y++){
         if(original.board[x][y] == EMPTY){
              State s(original);
              s.update(player,x,y);
-             if(bvalue<minimax(s,3,false)){
+             if(bvalue<minimax(s,4,false)){
                 
                 bvalue = s.bvalue;
-                cout<<bvalue<<endl;
+                cout<<s.bvalue<<endl;
                 fout<<x<<" "<<y<<endl;
                 fout.flush();
              }
+        }
+            }
         }
     }
     }
