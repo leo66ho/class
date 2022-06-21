@@ -90,12 +90,12 @@ int seqvalue(int cnt,int head,int tail,int disk){
    if(cnt == 5){return (player == disk)? INFINITE:-100000;}
    if(head==tail && head==0 && tail == 0 && cnt>=1){
      if(cnt == 4){return (player == disk)? 256:-256;}
-     if(cnt == 3){return (player == disk)? 32:-64;}
+     if(cnt == 3){return (player == disk)? 32:-32;}
      if(cnt == 2){return (player == disk)? 4:-4;}
-     //if(cnt == 1){return(player == disk)? 1:-1;}
+     if(cnt == 1){return(player == disk)? 1:-1;}
    }
    else if(cnt>=3){
-     if(cnt == 4){return (player == disk)? 32:-64;}
+     if(cnt == 4){return (player == disk)? 64:-64;}
      else if(cnt == 3){return (player == disk)? 8:-8;}
      else if(cnt == 2){return (player == disk)? 2:-2;}
    }
@@ -319,38 +319,10 @@ void State:: changevalue(int x,int y){
 
     int i = x-y;
     
-    if(i>=0){
+    if(i<0){
         int a = 0;
         int value = 0;
-        int b = x-y;
-        head = -1,cnt = 1;
-        disk = board[a][b];
-        a++;
-        b++;
-        while(a<SIZE && b<SIZE && a>=0 && b>=0){
-             if(board[a][b] == disk){
-                cnt++;
-            }
-            else if(board[a][b] != disk){
-                tail = board[a][b];
-                value += seqvalue(cnt,head,tail,disk);
-                head = board[a-1][b-1];
-                disk = board[a][b];
-                cnt = 1;
-            }
-            a++;
-            b++;
-        
-        }
-        tail = -1;
-        value += seqvalue(cnt,head,tail,disk);
-        bvalue = bvalue-rdig[x-y]+value;
-        rdig[x-y] = value;
-    }
-    else{
-        int a = y-x;
-        int b = 0;
-        int value = 0;
+        int b = y-x;
         head = -1,cnt = 1;
         disk = board[a][b];
         a++;
@@ -374,6 +346,34 @@ void State:: changevalue(int x,int y){
         value += seqvalue(cnt,head,tail,disk);
         bvalue = bvalue-rdig[14+y-x]+value;
         rdig[14+y-x] = value;
+    }
+    else{
+        int a = x-y;
+        int b = 0;
+        int value = 0;
+        head = -1,cnt = 1;
+        disk = board[a][b];
+        a++;
+        b++;
+        while(a<SIZE && b<SIZE && a>=0 && b>=0){
+             if(board[a][b] == disk){
+                cnt++;
+            }
+            else if(board[a][b] != disk){
+                tail = board[a][b];
+                value += seqvalue(cnt,head,tail,disk);
+                head = board[a-1][b-1];
+                disk = board[a][b];
+                cnt = 1;
+            }
+            a++;
+            b++;
+        
+        }
+        tail = -1;
+        value += seqvalue(cnt,head,tail,disk);
+        bvalue = bvalue-rdig[x-y]+value;
+        rdig[x-y] = value;
     }
     
 
@@ -442,8 +442,8 @@ int minimax(State s,int depth,bool ourturn,int i,int j){
         return s.bvalue;
     }
     else if(ourturn == true){
-        for(int x=i-4;x<i+4;x++){
-        for(int y=j-4;y<j+4;y++){
+        for(int x=i-2;x<i+2;x++){
+        for(int y=j-2;y<j+2;y++){
             if(x<SIZE && x>=0 && y<SIZE && y<=0){
             if(s.board[x][y] == EMPTY){
                 int bvalue = -1000000;
@@ -457,8 +457,8 @@ int minimax(State s,int depth,bool ourturn,int i,int j){
         }
     }
     else if(ourturn == false){
-        for(int x=i-4;x<i+4;x++){
-        for(int y=j-4;y<j+4;y++){
+        for(int x=i-2;x<i+2;x++){
+        for(int y=j-2;y<j+2;y++){
             if(x<SIZE && x>=0 && y<SIZE && y>=0){
             if(s.board[x][y] == EMPTY){
                 int bvalue = INFINITE;
@@ -478,7 +478,7 @@ void write_valid_spot(std::ofstream& fout,State original) {
     srand(time(NULL));
     int x, y;
     int bvalue = -1000000;
-    int hvalue = -1000000;
+    //int hvalue = -1000000;
     if(board[7][7] == EMPTY){
         fout<<7<<" "<<7<<endl;
         fout.flush();
@@ -490,16 +490,16 @@ void write_valid_spot(std::ofstream& fout,State original) {
         if(original.board[x][y] == EMPTY){
              State s(original);
              s.update(player,x,y);
-             if(bvalue<minimax(s,6,false,x,y)){
+             int val = minimax(s,5,false,x,y);
+             if(bvalue<minimax(s,5,false,x,y)){
                 
-                bvalue = s.bvalue;
-                if(hvalue<=bvalue){
-                hvalue = bvalue;
-                cout<<hvalue<<endl;
+                bvalue = val;
+                
+                cout<<bvalue<<endl;
                 cout<<x<<" "<<y<<endl;
                 fout<<x<<" "<<y<<endl;
                 fout.flush();
-                }
+                
              }
         }
             }
