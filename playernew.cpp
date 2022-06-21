@@ -87,7 +87,7 @@ void read_board(std::ifstream& fin) {
 int seqvalue(int cnt,int head,int tail,int disk){
    if(disk == 0){return 0;}
    if(head == tail &&  head != 0 && tail != 0){return 0;}
-   if(cnt == 5){return (player == disk)? INFINITE:-100000;}
+   if(cnt == 5){return (player == disk)? INFINITE:-1000000;}
    if(head==tail && head==0 && tail == 0 && cnt>=1){
      if(cnt == 4){return (player == disk)? 256:-256;}
      if(cnt == 3){return (player == disk)? 32:-32;}
@@ -437,7 +437,7 @@ void State:: changevalue(int x,int y){
     }
 }
 
-int minimax(State s,int depth,bool ourturn,int i,int j){
+int minimax(State s,int depth,bool ourturn,int i,int j,int a,int b){
     if(depth == 0 || abs(s.bvalue)>=970000 || abs(s.bvalue)<=1030000){
         return s.bvalue;
     }
@@ -449,7 +449,9 @@ int minimax(State s,int depth,bool ourturn,int i,int j){
                 int bvalue = -1000000;
                 State n(s);
                 n.update(player,x,y);
-                bvalue = max(bvalue,minimax(n,depth-1,false,x,y));
+                bvalue = max(bvalue,minimax(n,depth-1,false,x,y,a,b));
+                if(b<=bvalue){return bvalue;}
+                a = max(a,bvalue);
                 return bvalue;
             }
             }
@@ -464,7 +466,9 @@ int minimax(State s,int depth,bool ourturn,int i,int j){
                 int bvalue = INFINITE;
                 State n(s);
                 n.update(3-player,x,y);
-                bvalue = min(bvalue,minimax(n,depth-1,true,x,y));
+                bvalue = min(bvalue,minimax(n,depth-1,true,x,y,a,b));
+                if(a>=bvalue){return bvalue;}
+                b = min(b,bvalue);
                 return bvalue;
             }
             }
@@ -490,13 +494,13 @@ void write_valid_spot(std::ofstream& fout,State original) {
         if(original.board[x][y] == EMPTY){
              State s(original);
              s.update(player,x,y);
-             int val = minimax(s,5,false,x,y);
-             if(bvalue<minimax(s,5,false,x,y)){
+             int val = minimax(s,9,false,x,y,-1000000,INFINITE);
+             if(bvalue<minimax(s,9,false,x,y,-1000000,INFINITE)){
                 
                 bvalue = val;
                 
-                cout<<bvalue<<endl;
-                cout<<x<<" "<<y<<endl;
+                //cout<<bvalue<<endl;
+                //cout<<x<<" "<<y<<endl;
                 fout<<x<<" "<<y<<endl;
                 fout.flush();
                 
