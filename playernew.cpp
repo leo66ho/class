@@ -16,6 +16,7 @@ enum SPOT_STATE {
 map<int,int> boardstatus;
 const int SIZE = 15;
 const int INFINITE = 1000000;
+const int NEGINF = -1000000;
 
 
 class State{
@@ -91,11 +92,11 @@ int seqvalue(int cnt,int head,int tail,int disk){
      if(cnt == 4){return (player == disk)? 256:-256;}
      if(cnt == 3){return (player == disk)? 32:-64;}
      if(cnt == 2){return (player == disk)? 4:-4;}
-     //if(cnt == 1){return(player == disk)? 2:-2;}
+     //if(cnt == 1){return(player == disk)? 1:-1;}
    }
    else if(cnt>=3){
      if(cnt == 4){return (player == disk)? 32:-64;}
-     else if(cnt == 3){return (player == disk)? 4:-4;}
+     else if(cnt == 3){return (player == disk)? 8:-8;}
      else if(cnt == 2){return (player == disk)? 2:-2;}
    }
    return 0;    
@@ -321,7 +322,7 @@ void State:: changevalue(int x,int y){
     if(i>=0){
         int a = 0;
         int value = 0;
-        int b = y-x;
+        int b = x-y;
         head = -1,cnt = 1;
         disk = board[a][b];
         a++;
@@ -372,7 +373,7 @@ void State:: changevalue(int x,int y){
         tail = -1;
         value += seqvalue(cnt,head,tail,disk);
         bvalue = bvalue-rdig[14+y-x]+value;
-        ldig[14+y-x] = value;
+        rdig[14+y-x] = value;
     }
     
 
@@ -436,32 +437,36 @@ void State:: changevalue(int x,int y){
     }
 }
 
-int minimax(State s,int depth,bool ourturn){
-    if(depth == 0 || abs(s.bvalue)>=97000 || abs(s.bvalue)<=103000){
+int minimax(State s,int depth,bool ourturn,int i,int j){
+    if(depth == 0 || abs(s.bvalue)>=970000 || abs(s.bvalue)<=1030000){
         return s.bvalue;
     }
     else if(ourturn == true){
-        for(int x=0;x<SIZE;x++){
-        for(int y=0;y<SIZE;y++){
+        for(int x=i-4;x<i+4;x++){
+        for(int y=j-4;y<j+4;y++){
+            if(x<SIZE && x>=0 && y<SIZE && y<=0){
             if(s.board[x][y] == EMPTY){
                 int bvalue = -1000000;
                 State n(s);
                 n.update(player,x,y);
-                bvalue = max(bvalue,minimax(n,depth-1,false));
+                bvalue = max(bvalue,minimax(n,depth-1,false,x,y));
                 return bvalue;
+            }
             }
         }
         }
     }
     else if(ourturn == false){
-        for(int x=0;x<SIZE;x++){
-        for(int y=0;y<SIZE;y++){
+        for(int x=i-4;x<i+4;x++){
+        for(int y=j-4;y<j+4;y++){
+            if(x<SIZE && x>=0 && y<SIZE && y>=0){
             if(s.board[x][y] == EMPTY){
                 int bvalue = INFINITE;
                 State n(s);
                 n.update(3-player,x,y);
-                bvalue = min(bvalue,minimax(n,depth-1,true));
+                bvalue = min(bvalue,minimax(n,depth-1,true,x,y));
                 return bvalue;
+            }
             }
             }
         }
@@ -485,12 +490,12 @@ void write_valid_spot(std::ofstream& fout,State original) {
         if(original.board[x][y] == EMPTY){
              State s(original);
              s.update(player,x,y);
-             if(bvalue<minimax(s,5,false)){
+             if(bvalue<minimax(s,6,false,x,y)){
                 
                 bvalue = s.bvalue;
                 if(hvalue<=bvalue){
                 hvalue = bvalue;
-                cout<<bvalue<<endl;
+                cout<<hvalue<<endl;
                 cout<<x<<" "<<y<<endl;
                 fout<<x<<" "<<y<<endl;
                 fout.flush();
